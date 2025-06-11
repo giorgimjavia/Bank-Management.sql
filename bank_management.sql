@@ -1,0 +1,129 @@
+-- Create the database
+CREATE DATABASE BankDB;
+GO
+
+-- Use the database
+USE BankDB;
+GO
+
+-- Create CLIENTS table
+CREATE TABLE CLIENTS (
+    CLIENT_ID INT PRIMARY KEY,
+    FIRST_NAME VARCHAR(100),
+    LAST_NAME VARCHAR(100),
+    GENDER VARCHAR(10),
+    AGE INT,
+    DATE_OF_BIRTH DATE
+);
+
+-- Create CONTACTS table
+CREATE TABLE CONTACTS (
+    CONTACT_ID INT PRIMARY KEY,
+    PHONE_NUMBER VARCHAR(20),
+    EMAIL VARCHAR(100),
+    CLIENT_ID INT,
+    FOREIGN KEY (CLIENT_ID) REFERENCES CLIENTS(CLIENT_ID)
+);
+
+-- Create BANK_ACCOUNTS table
+CREATE TABLE BANK_ACCOUNTS (
+    ACCOUNT_NUMBER BIGINT PRIMARY KEY,
+    ACTIVE_STATUS BIT,
+    CLIENT_ID INT,
+    FOREIGN KEY (CLIENT_ID) REFERENCES CLIENTS(CLIENT_ID)
+);
+
+-- Create LOANS table
+CREATE TABLE LOANS (
+    LOAN_ID INT PRIMARY KEY,
+    LOAN_AMOUNT DECIMAL(12, 2),
+    PERCENTAGE DECIMAL(5, 2),
+    LOAN_APPLICATION_DATE DATE,
+    LOAN_DUE_DATE DATE,
+    CLIENT_ID INT,
+    FOREIGN KEY (CLIENT_ID) REFERENCES CLIENTS(CLIENT_ID)
+);
+
+-- Sample UPDATE
+UPDATE CONTACTS
+SET EMAIL = 'emily.davis15@email.com'
+WHERE CONTACT_ID = 4;
+
+-- Sample DELETE
+DELETE FROM CLIENTS
+WHERE CLIENT_ID = 2;
+
+-- Active card users
+SELECT * FROM BANK_ACCOUNTS
+WHERE ACTIVE_STATUS = 1;
+
+-- Loans with specific conditions
+SELECT * FROM LOANS
+WHERE LOAN_APPLICATION_DATE > '2022-01-01'
+AND LOAN_AMOUNT > 10000.00
+AND PERCENTAGE > 4.00;
+
+-- First names starting with "a"
+SELECT * FROM CLIENTS
+WHERE FIRST_NAME LIKE 'a%';
+
+-- Sort loan amounts ascending
+SELECT * FROM LOANS
+ORDER BY LOAN_AMOUNT;
+
+-- Total loan amount
+SELECT SUM(LOAN_AMOUNT) AS TotalLoanAmount
+FROM LOANS;
+
+-- Count clients older than 30
+SELECT COUNT(*) AS ClientsOver30
+FROM CLIENTS
+WHERE AGE > 30;
+
+-- T-SQL variables and IF statement
+DECLARE @LOAN_ID INT = 1;
+DECLARE @PERCENTAGE DECIMAL(5,2);
+
+SELECT @PERCENTAGE = PERCENTAGE
+FROM LOANS
+WHERE LOAN_ID = @LOAN_ID;
+
+IF @PERCENTAGE > 5 
+	PRINT 'Maghali saprocento ganakveti'
+ELSE 
+	PRINT 'Dabali saprocento ganakveti';
+
+-- LEFT JOIN: Clients + Contacts
+SELECT
+    cl.FIRST_NAME,
+    cl.LAST_NAME,
+    co.PHONE_NUMBER,
+    co.EMAIL
+FROM 
+    CLIENTS AS cl
+LEFT JOIN 
+    CONTACTS AS co ON cl.CLIENT_ID = co.CLIENT_ID;
+
+-- Stored Procedure: Loans above certain amount
+CREATE PROCEDURE LoansAboveAmount @amount MONEY
+AS
+BEGIN
+    SELECT * FROM LOANS
+    WHERE LOAN_AMOUNT > @amount;
+END;
+GO
+
+EXEC LoansAboveAmount 5000;
+GO
+
+-- Stored Procedure: Clients born after specific date
+CREATE PROCEDURE ClientsBornAfter @date DATE
+AS
+BEGIN
+    SELECT * FROM CLIENTS
+    WHERE DATE_OF_BIRTH > @date;
+END;
+GO
+
+EXEC ClientsBornAfter '1990-01-01';
+GO
